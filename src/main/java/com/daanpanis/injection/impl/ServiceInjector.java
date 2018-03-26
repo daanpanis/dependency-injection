@@ -2,6 +2,7 @@ package com.daanpanis.injection.impl;
 
 import com.daanpanis.injection.DependencyInjector;
 import com.daanpanis.injection.Inject;
+import com.daanpanis.injection.Null;
 import com.daanpanis.injection.exceptions.InjectionException;
 
 import java.lang.reflect.Constructor;
@@ -71,17 +72,14 @@ public class ServiceInjector implements DependencyInjector {
         for (Constructor<?> constructor : toInject.getDeclaredConstructors()) {
 
             for (Class<?> param : constructor.getParameterTypes()) {
-                if (!isRegistered(param))
-                    continue constructorLoop;
+                if (!isRegistered(param)) continue constructorLoop;
             }
 
             constructors.add((Constructor<T>) constructor);
         }
 
-        if (constructors.isEmpty())
-            throw new InjectionException("No injectable constructors found!");
-        if (constructors.size() > 1)
-            throw new InjectionException("Multiple injectable constructors found!");
+        if (constructors.isEmpty()) throw new InjectionException("No injectable constructors found!");
+        if (constructors.size() > 1) throw new InjectionException("Multiple injectable constructors found!");
         return constructors.get(0);
     }
 
@@ -96,14 +94,23 @@ public class ServiceInjector implements DependencyInjector {
 
     private void injectFields(Object object) throws IllegalAccessException {
         for (Field field : object.getClass().getDeclaredFields()) {
-            if (Modifier.isStatic(field.getModifiers()) || field.getAnnotation(Inject.class) == null)
-                continue;
-            if (Modifier.isFinal(field.getModifiers()))
-                throw new InjectionException("Injectable field can't be final");
-            if (!isRegistered(field.getType()))
+            if (Modifier.isStatic(field.getModifiers()) || field.getAnnotation(Inject.class) == null) continue;
+            Inject inject = field.getAnnotation(Inject.class);
+            if (Modifier.isFinal(field.getModifiers())) throw new InjectionException("Injectable field can't be final");
+            if (inject.castFrom() == Null.class && !isRegistered(field.getType())) {
                 throw new InjectionException("Trying to inject unregistered service: " + field.getType());
+            } else if (inject.castFrom() != Null.class && !isRegistered(inject.castFrom())) {
+                throw new InjectionException("Trying to inject unregistered service: " + inject.castFrom());
+            }
             field.setAccessible(true);
-            field.set(object, getService(field.getType()));
+            if (inject.castFrom() == Null.class) {
+                field.set(object, getService(field.getType()));
+            } else {
+                Object service = getService(inject.castFrom());
+                if (service != null && service.getClass().isAssignableFrom(field.getType())) {
+                    field.set(object, service);
+                }
+            }
         }
     }
 }

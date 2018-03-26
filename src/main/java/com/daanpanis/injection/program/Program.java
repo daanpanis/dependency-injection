@@ -51,8 +51,8 @@ public class Program {
 
     public static class UserCommands {
 
-        @Inject
-        private UserService userService;
+        @Inject(castFrom = UserService.class)
+        private UserServiceImpl userService;
 
         @Command(syntax = "user add {1} {2} {3}")
         @Permission(node = "kappa")
@@ -64,10 +64,7 @@ public class Program {
         @Command(syntax = "user get {1}")
         void getUser(CommandSender sender, int id) {
             User user = userService.getUser(id);
-            if (user != null)
-                sender.sendMessage(user.toString());
-            else
-                sender.sendMessage("No user found by this ID!");
+            if (user != null) { sender.sendMessage(user.toString()); } else sender.sendMessage("No user found by this ID!");
         }
 
     }
