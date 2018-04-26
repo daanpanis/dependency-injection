@@ -4,13 +4,10 @@ import com.daanpanis.injection.exceptions.InjectionException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import services.ServiceNoAnnotation;
-import services.ServiceNoParent;
-import services.ServiceNoParentSingleton;
-import services.ServiceParentNotAssignable;
+import services.*;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ServiceInjectorTest {
 
@@ -48,6 +45,20 @@ public class ServiceInjectorTest {
         this.injector.addService(ServiceNoParentSingleton.class);
         assertThat(this.injector.isRegistered(ServiceNoParentSingleton.class), is(true));
         assertThat(this.injector.getProvider(ServiceNoParentSingleton.class) instanceof SingletonProvider, is(true));
+    }
+
+    @Test
+    public void addServiceWithParent() {
+        this.injector.addService(ServiceWithParent.class);
+        assertThat(this.injector.isRegistered(ServiceNoParent.class), is(true));
+        assertThat(this.injector.getProvider(ServiceNoParent.class) instanceof ScopedProvider, is(true));
+    }
+
+    @Test
+    public void addServiceSingletonWithParent() {
+        this.injector.addService(ServiceWithParentSingleton.class);
+        assertThat(this.injector.isRegistered(ServiceNoParent.class), is(true));
+        assertThat(this.injector.getProvider(ServiceNoParent.class) instanceof SingletonProvider, is(true));
     }
 
 }

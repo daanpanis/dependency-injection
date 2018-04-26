@@ -1,3 +1,9 @@
 package services;
 
-public class ServiceWithParent {}
+import com.daanpanis.injection.Service;
+
+@Service(parent = ServiceNoParent.class)
+public class ServiceWithParent extends ServiceNoParent {
+
+
+}

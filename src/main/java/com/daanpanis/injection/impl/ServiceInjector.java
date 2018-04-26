@@ -23,7 +23,7 @@ public class ServiceInjector implements DependencyInjector {
         Service serviceDefinition = instanceClass.getAnnotation(Service.class);
         if (serviceDefinition == null) throw new InjectionException("No service annotation present on class " + instanceClass);
         Class<?> serviceClass = serviceDefinition.parent() == Service.class ? instanceClass : serviceDefinition.parent();
-        if (!instanceClass.isAssignableFrom(serviceClass)) throw new InjectionException(instanceClass + " not assignable from " + serviceClass);
+        if (!serviceClass.isAssignableFrom(instanceClass)) throw new InjectionException(instanceClass + " not assignable from " + serviceClass);
 
         if (instanceClass.getAnnotation(Singleton.class) != null) {
             addSingleton((Class<? super T>) serviceClass, instanceClass);
