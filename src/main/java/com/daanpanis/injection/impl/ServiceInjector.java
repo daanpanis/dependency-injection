@@ -1,8 +1,6 @@
 package com.daanpanis.injection.impl;
 
-import com.daanpanis.injection.DependencyInjector;
-import com.daanpanis.injection.Inject;
-import com.daanpanis.injection.Null;
+import com.daanpanis.injection.*;
 import com.daanpanis.injection.exceptions.InjectionException;
 
 import java.lang.reflect.Constructor;
@@ -18,6 +16,21 @@ import java.util.function.Supplier;
 public class ServiceInjector implements DependencyInjector {
 
     private final Map<Class<?>, ServiceProvider<?>> serviceProviders = new HashMap<>();
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> void addService(Class<T> instanceClass) {
+        Service serviceDefinition = instanceClass.getAnnotation(Service.class);
+        if (serviceDefinition == null) throw new InjectionException("No service annotation present on class " + instanceClass);
+        Class<?> serviceClass = serviceDefinition.parent() == Service.class ? instanceClass : serviceDefinition.parent();
+        if (!instanceClass.isAssignableFrom(serviceClass)) throw new InjectionException(instanceClass + " not assignable from " + serviceClass);
+
+        if (instanceClass.getAnnotation(Singleton.class) != null) {
+            addSingleton((Class<? super T>) serviceClass, instanceClass);
+        } else {
+            addScoped((Class<? super T>) serviceClass, instanceClass);
+        }
+    }
 
     @Override
     public <T> void addSingleton(Class<? super T> serviceClass, Class<T> instanceClass) {
@@ -44,6 +57,10 @@ public class ServiceInjector implements DependencyInjector {
     public <T> T getService(Class<T> serviceClass) {
         ServiceProvider<T> provider = (ServiceProvider<T>) serviceProviders.get(serviceClass);
         return provider != null ? provider.provide() : null;
+    }
+
+    protected ServiceProvider getProvider(Class<?> serviceClass) {
+        return serviceProviders.get(serviceClass);
     }
 
     @Override

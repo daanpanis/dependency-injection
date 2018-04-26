@@ -4,6 +4,8 @@ import java.util.function.Supplier;
 
 public interface DependencyInjector {
 
+    <T> void addService(Class<T> instanceClass);
+
     <T> void addSingleton(Class<? super T> serviceClass, Class<T> instanceClass);
 
     <T> void addSingleton(Class<? super T> serviceClass, Supplier<T> instanceSupplier);
